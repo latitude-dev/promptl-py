@@ -1,0 +1,68 @@
+[project]
+name = "promptl-ai"
+version = "0.1.0-beta.1"
+description = "PromptL bindings for Python"
+authors = [{ name = "Latitude Data SL", email = "hello@latitude.so" }]
+maintainers = [{ name = "Latitude Data SL", email = "hello@latitude.so" }]
+readme = "README.md"
+license = "MIT"
+urls.repository = "https://github.com/latitude-dev/promptl-py"
+urls.homepage = "https://github.com/latitude-dev/promptl-py#readme"
+urls.documentation = "https://docs.latitude.so/promptl"
+requires-python = ">=3.9, <3.13"
+dependencies = [
+    "wasmtime>=28.0.0",
+    "pydantic>=2.10.3",
+    "typing-extensions>=4.12.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest>=8.3.4",
+    "pyright>=1.1.392",
+    "ruff>=0.8.3",
+    "sh>=1.14.3",
+]
+
+[tool.pyright]
+pythonVersion = "3.9"
+typeCheckingMode = "strict"
+reportMissingTypeStubs = false
+reportUnnecessaryIsInstance = false
+reportPrivateUsage = false
+
+[tool.ruff]
+target-version = "py39"
+line-length = 120
+indent-width = 4
+
+[tool.ruff.lint]
+select = ["B", "C4", "E", "F", "I", "W", "UP"]
+ignore = [
+    "F401",
+    "F403",
+    "UP015",
+    # Needed because unnecessary str() on field aliases are needed
+    # https://docs.pydantic.dev/2.8/concepts/fields/#field-aliases
+    "UP018",
+    # Needed because typing.List and typing.Dict are semi-deprecated
+    # in new Python versions but we want to maintain compatibility
+    "UP006",
+    "UP035",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+addopts = "-p no:warnings -n auto"
+xfail_strict = true
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
