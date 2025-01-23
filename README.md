@@ -10,7 +10,7 @@ Requires Python `3.9` or higher.
 
 [PromptL](https://promptl.ai/) offers a common, easy-to-use syntax for defining dynamic prompts for LLMs. It is a simple, yet powerful language that allows you to define prompts in a human-readable format, while still being able to leverage the full power of LLMs.
 
-> This repository contains the Python bindings for PromptL. Go to the main [repository](https://github.com/latitude-dev/promptl) to learn more.
+> This repository contains the Python bindings for PromptL. Go to the [main repository](https://github.com/latitude-dev/promptl) to learn more.
 
 ## Usage
 

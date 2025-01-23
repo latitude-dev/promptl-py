@@ -134,7 +134,7 @@ class Client:
 
         return results[0].value
 
-    def batch_execute(self, procedures: List[Tuple[Procedure, Parameters]]) -> List[Result]:
+    def execute_batch(self, procedures: List[Tuple[Procedure, Parameters]]) -> List[Result]:
         calls = [Call(procedure=procedure, parameters=parameters.model_dump()) for procedure, parameters in procedures]
 
         results = self._execute(calls)

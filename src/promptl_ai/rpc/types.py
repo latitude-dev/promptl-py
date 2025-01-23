@@ -27,7 +27,7 @@ class ErrorCode(StrEnum):
 
 
 class Error(Model):
-    code: str
+    code: ErrorCode
     message: str
     details: Optional[Dict[str, Any]] = None
 

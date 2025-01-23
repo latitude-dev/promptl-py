@@ -1,4 +1,6 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
+
+from promptl_ai.util import StrEnum
 
 
 class PromptlError(Exception):
@@ -8,13 +10,13 @@ class PromptlError(Exception):
 
     def __init__(
         self,
-        code: str,
+        code: Union[str, StrEnum],
         message: str,
         details: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(message)
 
-        self.code = code
+        self.code = str(code)
         self.message = message
         self.details = details
 
