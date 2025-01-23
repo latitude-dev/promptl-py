@@ -4,6 +4,21 @@ from promptl_ai.util import Adapter as AdapterUtil
 from promptl_ai.util import Field, Model, StrEnum
 
 
+class ErrorPosition(Model):
+    line: int
+    column: int
+    character: int
+
+
+class Error(Model):
+    name: Optional[str] = None
+    code: Optional[str] = None
+    message: str
+    start: Optional[ErrorPosition] = None
+    end: Optional[ErrorPosition] = None
+    frame: Optional[str] = None
+
+
 class Adapter(StrEnum):
     Default = "default"
     OpenAI = "openai"
