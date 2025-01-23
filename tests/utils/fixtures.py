@@ -1,3 +1,6 @@
+import re
+from hashlib import sha256
+
 from promptl_ai import AssistantMessage, SystemMessage, TextContent, ToolCallContent, UserMessage
 
 PROMPT = """
@@ -74,7 +77,11 @@ schema:
 
   {{ endif }}
 </step>
-""".strip()
+""".strip()  # noqa: E501
+
+PROMPT_HASH = sha256(PROMPT.encode()).hexdigest()
+
+PROMPT_RESOLVED = re.sub(r"/\*.*?\*/", "", PROMPT, flags=re.DOTALL)
 
 PARAMETERS = {
     "problem": "I have a problem with my computer.",
@@ -86,7 +93,7 @@ PARAMETERS = {
     ],
 }
 
-STEP_RESPONSES = [
+RESPONSES = [
     AssistantMessage(
         content=[
             TextContent(text='{"confidence": 100, "response": "Yes, I have understood the instructions completely."}'),
@@ -112,11 +119,11 @@ STEP_RESPONSES = [
 
 CONVERSATION = [
     SystemMessage(
-        content="# Introduction\nYou are an advanced assistant specialized in assisting users.\n\n## Documentation\n\n\n\n## Instructions\nTake a look at the following user problem:"
+        content="# Introduction\nYou are an advanced assistant specialized in assisting users.\n\n## Documentation\n\n\n\n## Instructions\nTake a look at the following user problem:"  # noqa: E501
     ),
     UserMessage(content=[TextContent(text="I have a problem with my computer.")]),
     SystemMessage(
-        content="## Task\nYou must fix the user problem.\n\nHOWEVER, DON'T FIX IT YET, AND TELL ME IF YOU HAVE UNDERSTOOD THE INSTRUCTIONS."
+        content="## Task\nYou must fix the user problem.\n\nHOWEVER, DON'T FIX IT YET, AND TELL ME IF YOU HAVE UNDERSTOOD THE INSTRUCTIONS."  # noqa: E501
     ),
     AssistantMessage(
         content=[
@@ -130,7 +137,7 @@ CONVERSATION = [
         ]
     ),
     SystemMessage(
-        content='Now, I want you to think about whether the problem should be fixed ("SHOULD_FIX") or not ("SHOULD_NOT_FIX").'
+        content='Now, I want you to think about whether the problem should be fixed ("SHOULD_FIX") or not ("SHOULD_NOT_FIX").'  # noqa: E501
     ),
     AssistantMessage(content=[TextContent(text='{"confidence": 95, "response": "SHOULD_FIX"}')]),
     SystemMessage(content="Use the magical tool to fix the user problem."),
@@ -140,7 +147,6 @@ CONVERSATION = [
         ]
     ),
 ]
-
 
 CONFIG = {
     "provider": "OpenAI",
