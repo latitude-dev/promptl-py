@@ -7,12 +7,16 @@ class ScanPromptParameters(Model):
     prompt: str
 
 
-class CreateChainParameters(Model):
+class RenderPromptParameters(Model):
     prompt: str
     parameters: Optional[Dict[str, Any]] = None
     adapter: Optional[str] = None
     default_role: Optional[str] = Field(default=None, alias=str("defaultRole"))
     include_source_map: Optional[bool] = Field(default=None, alias=str("includeSourceMap"))
+
+
+class CreateChainParameters(RenderPromptParameters, Model):
+    pass
 
 
 class ChainParameters(Model):
@@ -25,6 +29,7 @@ class StepChainParameters(ChainParameters, Model):
 
 Parameters = Union[
     ScanPromptParameters,
+    RenderPromptParameters,
     CreateChainParameters,
     StepChainParameters,
 ]

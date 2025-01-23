@@ -5,6 +5,7 @@ from promptl_ai.util import Adapter, Model, StrEnum
 
 class Procedure(StrEnum):
     ScanPrompt = "scanPrompt"
+    RenderPrompt = "renderPrompt"
     CreateChain = "createChain"
     StepChain = "stepChain"
 
