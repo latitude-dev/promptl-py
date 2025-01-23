@@ -1,7 +1,8 @@
 from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
+from promptl_ai.bindings.errors import PromptlError
 from promptl_ai.bindings.types import Adapter, Message, MessageRole, _Message
-from promptl_ai.rpc import Client, CreateChainParameters, Procedure, StepChainParameters
+from promptl_ai.rpc import Client, CreateChainParameters, Procedure, RPCError, StepChainParameters
 from promptl_ai.util import Field, Model
 
 
@@ -80,6 +81,10 @@ class Chains:
                 include_source_map=options.include_source_map,
             ),
         )
+        if result.error:
+            raise PromptlError(result.error.details) if result.error.details else RPCError(result.error)
+        assert result.value is not None
+        result = result.value
 
         return Chain(result, self.step)
 
@@ -108,6 +113,10 @@ class Chains:
                 response=response,  # type: ignore (seems that Pyright is not able to infer the type)
             ),
         )
+        if result.error:
+            raise PromptlError(result.error.details) if result.error.details else RPCError(result.error)
+        assert result.value is not None
+        result = result.value
 
         chain = Chain(result.pop("chain"), self.step)
         result = StepChainResult.model_validate(result)

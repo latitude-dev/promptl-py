@@ -22,12 +22,11 @@ class ErrorCode(StrEnum):
     ExecuteError = "EXECUTE_ERROR"
     SendError = "SEND_ERROR"
     ProcedureError = "PROCEDURE_ERROR"
-    UnknownProcedure = "UNKNOWN_PROCEDURE"
     UnknownError = "UNKNOWN_ERROR"
 
 
 class Error(Model):
-    code: str
+    code: ErrorCode
     message: str
     details: Optional[Dict[str, Any]] = None
 
