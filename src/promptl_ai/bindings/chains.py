@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
 from promptl_ai.bindings.errors import PromptlError
-from promptl_ai.bindings.types import Adapter, Message, MessageRole, _Message
+from promptl_ai.bindings.types import Adapter, CommonOptions, MessageLike, MessageRole, _MessageLike
 from promptl_ai.rpc import Client, CreateChainParameters, Procedure, RPCError, StepChainParameters
 from promptl_ai.util import Field, Model
 
@@ -12,7 +12,7 @@ class CreateChainOptions(Model):
 
 
 class StepChainResult(Model):
-    messages: List[Message]
+    messages: List[MessageLike]
     config: Dict[str, Any]
     completed: bool
 
@@ -26,6 +26,10 @@ class Chain:
     def __init__(self, chain: Dict[str, Any], step: Callable[[Any, Any], Any]):
         self._chain = chain
         self._step = step
+
+    @property
+    def adapter(self) -> Adapter:
+        return Adapter(self._chain["adapterType"])
 
     @property
     def completed(self) -> bool:
@@ -42,14 +46,7 @@ class Chain:
     # Note: This is syntatic sugar equal to `promptl.chains.step(chain, response)`
     def step(
         self,
-        response: Optional[
-            Union[
-                str,
-                Message,
-                Dict[str, Any],
-                Sequence[Union[Message, Dict[str, Any]]],
-            ]
-        ] = None,
+        response: Optional[Union[str, MessageLike, Sequence[MessageLike]]] = None,
     ) -> StepChainResult:
         result = self._step(self, response)
         self._chain = result.chain._chain
@@ -57,9 +54,11 @@ class Chain:
 
 
 class Chains:
+    _options: CommonOptions
     _client: Client
 
-    def __init__(self, client: Client):
+    def __init__(self, client: Client, options: CommonOptions):
+        self._options = options
         self._client = client
 
     def create(
@@ -69,7 +68,8 @@ class Chains:
         adapter: Optional[Adapter] = None,
         options: Optional[CreateChainOptions] = None,
     ) -> Chain:
-        options = CreateChainOptions(**dict(options or {}))
+        options = CreateChainOptions(**{**dict(self._options), **dict(options or {})})
+        adapter = adapter or self._options.adapter
 
         result = self._client.execute(
             Procedure.CreateChain,
@@ -91,20 +91,16 @@ class Chains:
     def step(
         self,
         chain: Chain,
-        response: Optional[
-            Union[
-                str,
-                Message,
-                Dict[str, Any],
-                Sequence[Union[Message, Dict[str, Any]]],
-            ]
-        ] = None,
+        response: Optional[Union[str, MessageLike, Sequence[MessageLike]]] = None,
     ) -> StepChainResult:
+        adapter = chain.adapter or self._options.adapter
+
         if response and not isinstance(response, str):
-            if isinstance(response, list):
-                response = [_Message.validate_python(message).model_dump() for message in response]
-            else:
-                response = _Message.validate_python(response).model_dump()
+            if not isinstance(response, Sequence):
+                response = [response]
+            response = [
+                _MessageLike.validate_python(message, context={"adapter": adapter}).model_dump() for message in response
+            ]
 
         result = self._client.execute(
             Procedure.StepChain,
@@ -119,7 +115,7 @@ class Chains:
         result = result.value
 
         chain = Chain(result.pop("chain"), self.step)
-        result = StepChainResult.model_validate(result)
+        result = StepChainResult.model_validate(result, context={"adapter": adapter})
         result.chain = chain
 
         return result

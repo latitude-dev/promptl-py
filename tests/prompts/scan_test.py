@@ -38,8 +38,10 @@ class TestScanPrompt(TestCase):
             ],
         )
 
+    # TODO: test_fails_procedure
+
     @mock.patch.object(rpc.Client, "_send")
-    def test_fails(self, mock_send: mock.MagicMock):
+    def test_fails_rpc(self, mock_send: mock.MagicMock):
         mock_send.side_effect = Exception("Failed to write to stdin")
 
         prompt = fixtures.PROMPT
