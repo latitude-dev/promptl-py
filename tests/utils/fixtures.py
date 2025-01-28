@@ -155,7 +155,7 @@ PARAMETERS = {
     ],
 }
 
-STEPS = [
+RESPONSE_STEPS = [
     [
         AssistantMessage(
             content=[
@@ -207,25 +207,58 @@ STEPS = [
     ],
 ]
 
-CONVERSATION = [
-    SystemMessage(
-        content="# Introduction\nYou are an advanced assistant specialized in assisting users.\n\n## Documentation\n\n\n\n## Instructions\nTake a look at the following user problem:"  # noqa: E501
-    ),
-    UserMessage(content=[TextContent(text="I have a problem with my computer.")]),
-    SystemMessage(
-        content="## Task\nYou must fix the user problem.\n\nHOWEVER, DON'T FIX IT YET, AND TELL ME IF YOU HAVE UNDERSTOOD THE INSTRUCTIONS."  # noqa: E501
-    ),
-    *STEPS[0],
-    SystemMessage(
-        content="WAIT THERE IS ONE MORE THING BEFORE YOU CAN FIX THE PROBLEM.\nI NEED YOU TO DOWNLOAD A MEME FIRST, WHATEVER CATEGORY YOU WANT."  # noqa: E501
-    ),
-    *STEPS[1],
-    SystemMessage(content="Okay, first I need you to think about how to fix the user problem."),
-    *STEPS[2],
-    SystemMessage(
-        content='Now, I want you to think about whether the problem should be fixed ("SHOULD_FIX") or not ("SHOULD_NOT_FIX").'  # noqa: E501
-    ),
-    *STEPS[3],
-    SystemMessage(content="Use the magical tool to fix the user problem."),
-    *STEPS[4],
+PROMPT_STEPS = [
+    [
+        SystemMessage(
+            content=[
+                TextContent(
+                    text="# Introduction\nYou are an advanced assistant specialized in assisting users.\n\n## Documentation\n\n\n\n## Instructions\nTake a look at the following user problem:"  # noqa: E501
+                ),
+            ],
+        ),
+        UserMessage(content=[TextContent(text="I have a problem with my computer.")]),
+        SystemMessage(
+            content=[
+                TextContent(
+                    text="## Task\nYou must fix the user problem.\n\nHOWEVER, DON'T FIX IT YET, AND TELL ME IF YOU HAVE UNDERSTOOD THE INSTRUCTIONS."  # noqa: E501
+                ),
+            ],
+        ),
+    ],
+    [
+        SystemMessage(
+            content=[
+                TextContent(
+                    text="WAIT THERE IS ONE MORE THING BEFORE YOU CAN FIX THE PROBLEM.\nI NEED YOU TO DOWNLOAD A MEME FIRST, WHATEVER CATEGORY YOU WANT."  # noqa: E501
+                ),
+            ],
+        ),
+    ],
+    [
+        SystemMessage(
+            content=[
+                TextContent(text="Okay, first I need you to think about how to fix the user problem."),
+            ],
+        ),
+    ],
+    [
+        SystemMessage(
+            content=[
+                TextContent(
+                    text='Now, I want you to think about whether the problem should be fixed ("SHOULD_FIX") or not ("SHOULD_NOT_FIX").'  # noqa: E501
+                ),
+            ],
+        ),
+    ],
+    [
+        SystemMessage(
+            content=[
+                TextContent(text="Use the magical tool to fix the user problem."),
+            ],
+        ),
+    ],
 ]
+
+CONVERSATION_STEPS = [(prompt + response) for prompt, response in zip(PROMPT_STEPS, RESPONSE_STEPS)]
+
+CONVERSATION = [message for step in CONVERSATION_STEPS for message in step]

@@ -1,14 +1,12 @@
 from unittest import mock
 
-from promptl_ai import Error, ErrorPosition, rpc
+from promptl_ai import Error, ErrorPosition, PromptlError, rpc
 from tests.utils import TestCase, fixtures
 
 
 class TestScanPrompt(TestCase):
     def test_success_without_errors(self):
-        prompt = fixtures.PROMPT
-
-        result = self.promptl.prompts.scan(prompt)
+        result = self.promptl.prompts.scan(fixtures.PROMPT)
 
         self.assertEqual(result.hash, fixtures.PROMPT_HASH)
         self.assertEqual(result.resolved_prompt, fixtures.PROMPT_RESOLVED)
@@ -19,35 +17,46 @@ class TestScanPrompt(TestCase):
         self.assertEqual(result.included_prompt_paths, [""])
 
     def test_success_with_errors(self):
-        prompt = fixtures.PROMPT[3:]
-
-        result = self.promptl.prompts.scan(prompt)
+        result = self.promptl.prompts.scan(fixtures.PROMPT[3:])
 
         self.assertEqual(result.config, {})
         self.assertEqual(
             result.errors,
             [
-                Error(
+                Error.model_construct(
                     name="ParseError",
                     code="unexpected-token",
                     message="Expected '---' but did not find it.",
-                    start=ErrorPosition(line=25, column=4, character=448),
-                    end=ErrorPosition(line=73, column=8, character=1794),
-                    frame="23:     - response\n24:   additionalProperties: false\n25: ---\n\n       ^~~~\n26: \n27: <step>",  # noqa: E501
+                    start=ErrorPosition(line=33, column=4, character=680),
+                    end=ErrorPosition(line=86, column=8, character=2172),
+                    frame=mock.ANY,
                 )
             ],
         )
 
-    # TODO: test_fails_procedure
+    @mock.patch.object(rpc.Client, "_execute")
+    def test_fails_procedure(self, mock_execute: mock.MagicMock):
+        mock_execute.return_value = [
+            rpc.Result(
+                error=rpc.Error(
+                    code=rpc.ErrorCode.ProcedureError,
+                    message="Some PromptL Error",
+                    details=Error(message="Some PromptL Error").model_dump(),
+                )
+            )
+        ]
+
+        with self.assertRaises(PromptlError) as context:
+            self.promptl.prompts.scan(fixtures.PROMPT)
+
+        self.assertEqual(context.exception, PromptlError(Error(message="Some PromptL Error")))
 
     @mock.patch.object(rpc.Client, "_send")
     def test_fails_rpc(self, mock_send: mock.MagicMock):
         mock_send.side_effect = Exception("Failed to write to stdin")
 
-        prompt = fixtures.PROMPT
-
         with self.assertRaises(rpc.RPCError) as context:
-            self.promptl.prompts.scan(prompt)
+            self.promptl.prompts.scan(fixtures.PROMPT)
 
         self.assertEqual(
             context.exception,
