@@ -44,7 +44,7 @@ class Client:
         wasm.Module.validate(self.engine, raw_module)
         self.module = wasm.Module(self.engine, raw_module)
 
-    # Note: this is needed to be thread-safe and avoid race condition on the file
+    # NOTE: this is needed to be thread-safe and avoid race condition on the file
     # system, because we cannot reuse the same file io for multiple calls yet
     def _open_pipe(self) -> Pipe:
         execution_id = str(random.randint(0, sys.maxsize))
@@ -65,7 +65,7 @@ class Client:
         if os.path.exists(pipe.stderr):
             os.remove(pipe.stderr)
 
-    # Note: this is needed because we cannot reuse the same WASM instance yet
+    # NOTE: this is needed because we cannot reuse the same WASM instance yet
     def _instantiate(self, pipe: Pipe) -> wasm.Instance:
         config = wasm.WasiConfig()
         config.argv = []

@@ -43,7 +43,7 @@ class Chain:
     def raw_text(self) -> str:
         return self._chain["rawText"]
 
-    # Note: This is syntatic sugar equal to `promptl.chains.step(chain, response)`
+    # NOTE: This is syntatic sugar equal to `promptl.chains.step(chain, response)`
     def step(
         self,
         response: Optional[Union[str, MessageLike, Sequence[MessageLike]]] = None,
