@@ -48,7 +48,7 @@ class TestRenderPrompt(TestCase):
             context.exception,
             rpc.RPCError(
                 rpc.Error(
-                    code=rpc.ErrorCode.ReceiveError,
+                    code=rpc.ErrorCode.ExecuteError,
                     message="Failed to write to stdin",
                 )
             ),
