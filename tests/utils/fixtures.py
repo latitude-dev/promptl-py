@@ -1,8 +1,10 @@
 import re
 from hashlib import sha256
+from typing import List
 
 from promptl_ai import (
     AssistantMessage,
+    Message,
     SystemMessage,
     TextContent,
     ToolCallContent,
@@ -192,7 +194,7 @@ RESPONSE_STEPS = [
     [
         AssistantMessage(
             content=[
-                TextContent(text='{"confidence": 95, "response": "SHOULD_FIX"}'),
+                TextContent(text='{"response": "SHOULD_FIX"}'),
             ],
         ),
     ],
@@ -259,6 +261,20 @@ PROMPT_STEPS = [
     ],
 ]
 
-CONVERSATION_STEPS = [(prompt + response) for prompt, response in zip(PROMPT_STEPS, RESPONSE_STEPS)]
 
-CONVERSATION = [message for step in CONVERSATION_STEPS for message in step]
+def _build_conversation_steps():
+    STEP: List[Message] = [*PROMPT_STEPS[0]]
+    CONVERSATION: List[List[Message]] = [STEP.copy()]
+
+    for step in range(len(PROMPT_STEPS)):
+        STEP.extend(RESPONSE_STEPS[step])
+        if step + 1 < len(PROMPT_STEPS):
+            STEP.extend(PROMPT_STEPS[step + 1])
+        CONVERSATION.append(STEP.copy())
+
+    return CONVERSATION
+
+
+CONVERSATION_STEPS = _build_conversation_steps()
+
+CONVERSATION = CONVERSATION_STEPS[-1]
