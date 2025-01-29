@@ -1,7 +1,8 @@
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
+from promptl_ai.bindings.adapters import anthropic, openai
 from promptl_ai.util import Adapter as AdapterUtil
-from promptl_ai.util import Field, Model, StrEnum
+from promptl_ai.util import Aliases, Field, Model, StrEnum, Validator, ValidatorHandler, ValidatorInfo
 
 
 class ErrorPosition(Model):
@@ -53,14 +54,14 @@ class ToolCallContent(Model):
     type: Literal[ContentType.ToolCall] = ContentType.ToolCall
     id: str = Field(alias=str("toolCallId"))
     name: str = Field(alias=str("toolName"))
-    arguments: Dict[str, Any] = Field(alias=str("args"))
+    arguments: Dict[str, Any] = Field(alias=str("args"), validation_alias=Aliases("args", "toolArguments"))
 
 
 class ToolResultContent(Model):
     type: Literal[ContentType.ToolResult] = ContentType.ToolResult
     id: str = Field(alias=str("toolCallId"))
     name: str = Field(alias=str("toolName"))
-    result: str
+    result: Any
     is_error: Optional[bool] = Field(default=None, alias=str("isError"))
 
 
@@ -102,5 +103,41 @@ class ToolMessage(Model):
     content: List[ToolResultContent]
 
 
-Message = Union[SystemMessage, UserMessage, AssistantMessage, ToolMessage]
-_Message = AdapterUtil(Message)
+Message = Union[
+    SystemMessage,
+    UserMessage,
+    AssistantMessage,
+    ToolMessage,
+]
+_Message = AdapterUtil[Message](Message)
+
+
+def _message_like_validator(data: Any, handler: ValidatorHandler, info: ValidatorInfo) -> "MessageLike":
+    adapter = info.context.get("adapter", None) if info.context else None
+    if adapter == Adapter.OpenAI:
+        return openai._Message.validate_python(data)
+    elif adapter == Adapter.Anthropic:
+        return anthropic._Message.validate_python(data)
+    else:
+        # NOTE: This must be the default to be compatible
+        # with other libraries that depend on PromptL
+        return _Message.validate_python(data)
+
+
+_MessageLikeAdapters = Union[
+    Message,
+    openai.Message,
+    anthropic.Message,
+]
+MessageLike = Annotated[
+    Union[
+        _MessageLikeAdapters,
+        Dict[str, Any],
+    ],
+    Validator(_message_like_validator),
+]
+_MessageLike = AdapterUtil[_MessageLikeAdapters](MessageLike)
+
+
+class CommonOptions(Model):
+    adapter: Optional[Adapter] = None

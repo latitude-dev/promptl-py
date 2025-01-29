@@ -1,3 +1,4 @@
+from .adapters import *
 from .chains import *
 from .errors import *
 from .promptl import *

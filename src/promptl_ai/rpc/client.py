@@ -1,4 +1,6 @@
 import os
+import random
+import sys
 from typing import List, Tuple
 
 import wasmtime as wasm
@@ -7,6 +9,12 @@ from promptl_ai.rpc.errors import RPCError
 from promptl_ai.rpc.payloads import Parameters
 from promptl_ai.rpc.types import Call, Error, ErrorCode, Procedure, Result, _Calls, _Results
 from promptl_ai.util import Model
+
+
+class Pipe(Model):
+    stdin: str
+    stdout: str
+    stderr: str
 
 
 class ClientOptions(Model):
@@ -22,10 +30,6 @@ class Client:
     store: wasm.Store
     module: wasm.Module
 
-    stdin: str
-    stdout: str
-    stderr: str
-
     def __init__(self, options: ClientOptions):
         self.options = options
 
@@ -40,57 +44,75 @@ class Client:
         wasm.Module.validate(self.engine, raw_module)
         self.module = wasm.Module(self.engine, raw_module)
 
-        self.stdin = os.path.join(self.options.working_dir, "stdin")
-        self.stdout = os.path.join(self.options.working_dir, "stdout")
-        self.stderr = os.path.join(self.options.working_dir, "stderr")
+    # NOTE: this is needed to be thread-safe and avoid race condition on the file
+    # system, because we cannot reuse the same file io for multiple calls yet
+    def _open_pipe(self) -> Pipe:
+        execution_id = str(random.randint(0, sys.maxsize))
+        execution_dir = os.path.join(self.options.working_dir, execution_id)
+        os.makedirs(execution_dir, exist_ok=True)
 
-        os.makedirs(self.options.working_dir, exist_ok=True)
-        with open(self.stdin, "wb") as file:
-            file.write(b"")
-        with open(self.stdout, "wb") as file:
-            file.write(b"")
-        with open(self.stderr, "wb") as file:
-            file.write(b"")
+        stdin = os.path.join(execution_dir, "stdin")
+        stdout = os.path.join(execution_dir, "stdout")
+        stderr = os.path.join(execution_dir, "stderr")
 
-    def _instantiate(self) -> wasm.Instance:
+        return Pipe(stdin=stdin, stdout=stdout, stderr=stderr)
+
+    def _close_pipe(self, pipe: Pipe):
+        if os.path.exists(pipe.stdin):
+            os.remove(pipe.stdin)
+        if os.path.exists(pipe.stdout):
+            os.remove(pipe.stdout)
+        if os.path.exists(pipe.stderr):
+            os.remove(pipe.stderr)
+
+    # NOTE: this is needed because we cannot reuse the same WASM instance yet
+    def _instantiate(self, pipe: Pipe) -> wasm.Instance:
         config = wasm.WasiConfig()
         config.argv = []
         config.env = {}.items()
-        config.stdin_file = self.stdin
-        config.stdout_file = self.stdout
-        config.stderr_file = self.stderr
+        config.stdin_file = pipe.stdin
+        config.stdout_file = pipe.stdout
+        config.stderr_file = pipe.stderr
         self.store.set_wasi(config)
 
         return self.linker.instantiate(self.store, self.module)
 
-    def _send(self, data: bytes):
-        with open(self.stdin, "wb") as file:
+    def _send(self, pipe: Pipe, data: bytes):
+        with open(pipe.stdin, "wb") as file:
             file.write(data + b"\n")
 
-    def _receive(self) -> Tuple[bytes, bytes]:
-        with open(self.stdout, "rb") as file:
+    def _receive(self, pipe: Pipe) -> Tuple[bytes, bytes]:
+        with open(pipe.stdout, "rb") as file:
             out = file.read().strip()
 
-        with open(self.stderr, "rb") as file:
+        with open(pipe.stderr, "rb") as file:
             err = file.read().strip()
 
         return out, err
 
     def _execute(self, calls: List[Call]) -> List[Result]:
-        try:
-            self._send(_Calls.dump_json(calls))
-        except Exception as exception:
-            raise RPCError(
-                Error(
-                    code=ErrorCode.ReceiveError,
-                    message=str(exception),
-                )
-            ) from exception
+        pipe = None
 
         try:
-            instance = self._instantiate()
+            pipe = self._open_pipe()
+            self._send(pipe, _Calls.dump_json(calls))
+            instance = self._instantiate(pipe)
             instance.exports(self.store)["_start"](self.store)  # pyright: ignore [reportCallIssue]
+            out, err = self._receive(pipe)
+            if err:
+                raise RPCError(
+                    Error(
+                        code=ErrorCode.UnknownError,
+                        message=err.decode(),
+                    )
+                )
+
+            return _Results.validate_json(out)
+
         except Exception as exception:
+            if isinstance(exception, RPCError):
+                raise exception
+
             raise RPCError(
                 Error(
                     code=ErrorCode.ExecuteError,
@@ -98,34 +120,9 @@ class Client:
                 )
             ) from exception
 
-        out, err = self._receive()
-        if err:
-            raise RPCError(
-                Error(
-                    code=ErrorCode.UnknownError,
-                    message=err.decode(),
-                )
-            )
-
-        if not out:
-            raise RPCError(
-                Error(
-                    code=ErrorCode.SendError,
-                    message="No output",
-                )
-            )
-
-        try:
-            results = _Results.validate_json(out)
-        except Exception as exception:
-            raise RPCError(
-                Error(
-                    code=ErrorCode.SendError,
-                    message=str(exception),
-                )
-            ) from exception
-
-        return results
+        finally:
+            if pipe:
+                self._close_pipe(pipe)
 
     def execute(self, procedure: Procedure, parameters: Parameters) -> Result:
         results = self._execute([Call(procedure=procedure, parameters=parameters.model_dump())])

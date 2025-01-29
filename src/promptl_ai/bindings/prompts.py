@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional
 
 from promptl_ai.bindings.errors import PromptlError
-from promptl_ai.bindings.types import Adapter, Error, Message, MessageRole
+from promptl_ai.bindings.types import Adapter, CommonOptions, Error, MessageLike, MessageRole
 from promptl_ai.rpc import Client, Procedure, RenderPromptParameters, RPCError, ScanPromptParameters
 from promptl_ai.util import Field, Model
 
@@ -22,14 +22,16 @@ class RenderPromptOptions(Model):
 
 
 class RenderPromptResult(Model):
-    messages: List[Message]
+    messages: List[MessageLike]
     config: Dict[str, Any]
 
 
 class Prompts:
+    _options: CommonOptions
     _client: Client
 
-    def __init__(self, client: Client):
+    def __init__(self, client: Client, options: CommonOptions):
+        self._options = options
         self._client = client
 
     def scan(self, prompt: str) -> ScanPromptResult:
@@ -39,7 +41,7 @@ class Prompts:
         assert result.value is not None
         result = result.value
 
-        return ScanPromptResult.model_validate(result)
+        return ScanPromptResult.model_validate(result, context={"adapter": self._options.adapter})
 
     def render(
         self,
@@ -48,7 +50,8 @@ class Prompts:
         adapter: Optional[Adapter] = None,
         options: Optional[RenderPromptOptions] = None,
     ) -> RenderPromptResult:
-        options = RenderPromptOptions(**dict(options or {}))
+        options = RenderPromptOptions(**{**dict(self._options), **dict(options or {})})
+        adapter = adapter or self._options.adapter
 
         result = self._client.execute(
             Procedure.RenderPrompt,
@@ -65,4 +68,4 @@ class Prompts:
         assert result.value is not None
         result = result.value
 
-        return RenderPromptResult.model_validate(result)
+        return RenderPromptResult.model_validate(result, context={"adapter": adapter})
