@@ -118,10 +118,14 @@ def _message_like_validator(data: Any, handler: ValidatorHandler, info: Validato
         return openai._Message.validate_python(data)
     elif adapter == Adapter.Anthropic:
         return anthropic._Message.validate_python(data)
-    else:
-        # NOTE: This must be the default to be compatible
-        # with other libraries that depend on PromptL
+    elif adapter == Adapter.Default:
         return _Message.validate_python(data)
+    else:
+        if isinstance(data, dict):
+            # NOTE: This must be the default to be compatible
+            # with other libraries that depend on PromptL
+            return _Message.validate_python(data)
+        return handler(data)
 
 
 _MessageLikeAdapters = Union[
