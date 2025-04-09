@@ -26,10 +26,9 @@ class AudioContent(Model):
 
 
 MessageContent = Union[
-    str,
-    List[TextContent],
-    List[ImageContent],
-    List[AudioContent],
+    TextContent,
+    ImageContent,
+    AudioContent,
 ]
 
 
@@ -42,13 +41,13 @@ class MessageRole(StrEnum):
 
 class SystemMessage(Model):
     role: Literal[MessageRole.System] = MessageRole.System
-    content: MessageContent
+    content: Union[str, List[TextContent]]
     name: Optional[str] = None
 
 
 class UserMessage(Model):
     role: Literal[MessageRole.User] = MessageRole.User
-    content: MessageContent
+    content: Union[str, List[Union[TextContent, ImageContent, AudioContent]]]
     name: Optional[str] = None
 
 
@@ -73,7 +72,7 @@ class Audio(Model):
 
 class AssistantMessage(Model):
     role: Literal[MessageRole.Assistant] = MessageRole.Assistant
-    content: MessageContent
+    content: Union[str, List[TextContent]]
     refusal: Optional[str] = None
     name: Optional[str] = None
     audio: Optional[Audio] = None
@@ -82,7 +81,7 @@ class AssistantMessage(Model):
 
 class ToolMessage(Model):
     role: Literal[MessageRole.Tool] = MessageRole.Tool
-    content: MessageContent
+    content: Union[str, List[TextContent]]
     tool_call_id: str
 
 

@@ -66,12 +66,11 @@ class ToolResultContent(Model):
 
 
 MessageContent = Union[
-    str,
-    List[TextContent],
-    List[ImageContent],
-    List[FileContent],
-    List[ToolCallContent],
-    List[ToolResultContent],
+    TextContent,
+    ImageContent,
+    FileContent,
+    ToolCallContent,
+    ToolResultContent,
 ]
 
 

@@ -47,12 +47,11 @@ class ToolResultContent(Model):
 
 
 MessageContent = Union[
-    str,
-    List[TextContent],
-    List[ImageContent],
-    List[DocumentContent],
-    List[ToolUseContent],
-    List[ToolResultContent],
+    TextContent,
+    ImageContent,
+    DocumentContent,
+    ToolUseContent,
+    ToolResultContent,
 ]
 
 
@@ -63,12 +62,12 @@ class MessageRole(StrEnum):
 
 class UserMessage(Model):
     role: Literal[MessageRole.User] = MessageRole.User
-    content: MessageContent
+    content: Union[str, List[MessageContent]]
 
 
 class AssistantMessage(Model):
     role: Literal[MessageRole.Assistant] = MessageRole.Assistant
-    content: MessageContent
+    content: Union[str, List[MessageContent]]
 
 
 Message = Union[
