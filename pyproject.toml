@@ -1,6 +1,6 @@
 [project]
 name = "promptl-ai"
-version = "1.0.4"
+version = "1.0.5"
 description = "PromptL bindings for Python"
 authors = [{ name = "Latitude Data SL", email = "hello@latitude.so" }]
 maintainers = [{ name = "Latitude Data SL", email = "hello@latitude.so" }]
