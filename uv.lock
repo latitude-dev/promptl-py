@@ -1,5 +1,4 @@
 version = 1
-revision = 1
 requires-python = ">=3.9, <3.13"
 
 [[package]]
@@ -88,7 +87,7 @@ wheels = [
 
 [[package]]
 name = "promptl-ai"
-version = "1.0.5"
+version = "1.0.6"
 source = { editable = "." }
 dependencies = [
     { name = "pydantic" },
