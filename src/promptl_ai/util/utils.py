@@ -1,10 +1,36 @@
+import os
 from enum import Enum
 from typing import Any, Callable, List, TypeVar
 
 import pydantic
 from typing_extensions import ParamSpec, Self
 
+
+def get_package() -> str:
+    return (__package__ or __name__).split(".")[0].replace("_", "-")
+
+
 T = TypeVar("T", str, bool, int, List[str])
+
+
+def get_env(key: str, default: T) -> T:
+    value = os.getenv(key)
+    if not value:
+        return default
+
+    if isinstance(default, str):
+        return value
+
+    elif isinstance(default, bool):
+        return value.lower() in ["true", "1", "yes", "on"]
+
+    elif isinstance(default, int):
+        return int(value)
+
+    elif isinstance(default, list):
+        return value.split(",")
+
+    raise TypeError(f"Unknown type {type(default)}")
 
 
 P = ParamSpec("P")

@@ -15,9 +15,19 @@ class TestRenderPrompt(TestCase):
         self.assertEqual(result.config, fixtures.CONFIG)
 
     def test_fails_procedure(self):
+        parts = fixtures.PROMPT.split("---")
+        prompt = f"""
+---
+{parts[1].strip()}
+---
+{{{{ increment += 1 }}}}
+{parts[2].strip()}
+""".strip()  # noqa: E501
+
         with self.assertRaises(PromptlError) as context:
             self.promptl.prompts.render(
-                prompt=fixtures.PROMPT,
+                prompt=prompt,
+                parameters=fixtures.PARAMETERS,
             )
 
         self.assertEqual(
@@ -26,9 +36,9 @@ class TestRenderPrompt(TestCase):
                 Error.model_construct(
                     name="CompileError",
                     code="variable-not-declared",
-                    message="Variable 'problem' is not declared",
-                    start=ErrorPosition(line=50, column=7, character=1083),
-                    end=ErrorPosition(line=50, column=14, character=1090),
+                    message="Variable 'increment' is not declared",
+                    start=ErrorPosition(line=34, column=4, character=687),
+                    end=ErrorPosition(line=34, column=13, character=696),
                     frame=mock.ANY,
                 )
             ),

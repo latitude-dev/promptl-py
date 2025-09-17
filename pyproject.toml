@@ -1,6 +1,6 @@
 [project]
 name = "promptl-ai"
-version = "1.0.6"
+version = "1.1.0"
 description = "PromptL bindings for Python"
 authors = [{ name = "Latitude Data SL", email = "hello@latitude.so" }]
 maintainers = [{ name = "Latitude Data SL", email = "hello@latitude.so" }]
@@ -9,21 +9,21 @@ license = "MIT"
 urls.repository = "https://github.com/latitude-dev/promptl-py"
 urls.homepage = "https://github.com/latitude-dev/promptl-py#readme"
 urls.documentation = "https://docs.latitude.so/promptl"
-requires-python = ">=3.9, <3.13"
+requires-python = ">=3.9, <3.14"
 dependencies = [
-    "wasmtime>=28.0.0",
-    "pydantic>=2.10.3",
-    "typing-extensions>=4.12.2",
+    "wasmtime>=36.0.0",
+    "pydantic>=2.11.9",
+    "typing-extensions>=4.15.0",
 ]
 
 [dependency-groups]
 dev = [
-    "pytest-asyncio>=0.24.0",
-    "pytest-xdist>=3.6.1",
-    "pytest>=8.3.4",
-    "pyright>=1.1.392",
-    "ruff>=0.8.3",
-    "sh>=1.14.3",
+    "pytest-asyncio>=1.2.0",
+    "pytest-xdist>=3.8.0",
+    "pytest>=8.4.2",
+    "pyright>=1.1.405",
+    "ruff>=0.13.0",
+    "sh>=2.2.2",
 ]
 
 [tool.pyright]
