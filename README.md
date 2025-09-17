@@ -50,7 +50,7 @@ Find more [examples](examples).
 
 ## Development
 
-Requires uv `0.5.10` or higher.
+Requires uv `0.8.17` or higher.
 
 - Install dependencies: `uv venv && uv sync --all-extras --all-groups`
 - Add [dev] dependencies: `uv add [--dev] <package>`
