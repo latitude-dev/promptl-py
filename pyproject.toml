@@ -21,13 +21,13 @@ dev = [
     "pytest-asyncio>=1.2.0",
     "pytest-xdist>=3.8.0",
     "pytest>=8.4.2",
-    "pyright>=1.1.408",
+    "pyright>=1.1.405",
     "ruff>=0.13.0",
     "sh>=2.2.2",
 ]
 
 [tool.pyright]
-pythonVersion = "3.14"
+pythonVersion = "3.9"
 typeCheckingMode = "strict"
 reportMissingTypeStubs = false
 reportUnnecessaryIsInstance = false
