@@ -4,7 +4,7 @@
 pip install promptl-ai
 ```
 
-Requires Python `3.9` or higher.
+Requires Python `3.9` through `3.14`.
 
 ## What is PromptL?
 

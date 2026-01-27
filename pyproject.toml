@@ -9,10 +9,10 @@ license = "MIT"
 urls.repository = "https://github.com/latitude-dev/promptl-py"
 urls.homepage = "https://github.com/latitude-dev/promptl-py#readme"
 urls.documentation = "https://docs.latitude.so/promptl"
-requires-python = ">=3.9, <3.14"
+requires-python = ">=3.9, <3.15"
 dependencies = [
     "wasmtime>=36.0.0",
-    "pydantic>=2.11.9",
+    "pydantic>=2.12",
     "typing-extensions>=4.15.0",
 ]
 
@@ -21,13 +21,13 @@ dev = [
     "pytest-asyncio>=1.2.0",
     "pytest-xdist>=3.8.0",
     "pytest>=8.4.2",
-    "pyright>=1.1.405",
+    "pyright>=1.1.408",
     "ruff>=0.13.0",
     "sh>=2.2.2",
 ]
 
 [tool.pyright]
-pythonVersion = "3.9"
+pythonVersion = "3.14"
 typeCheckingMode = "strict"
 reportMissingTypeStubs = false
 reportUnnecessaryIsInstance = false
