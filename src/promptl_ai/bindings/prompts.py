@@ -34,8 +34,20 @@ class Prompts:
         self._options = options
         self._client = client
 
-    def scan(self, prompt: str) -> ScanPromptResult:
-        result = self._client.execute(Procedure.ScanPrompt, ScanPromptParameters(prompt=prompt))
+    def scan(
+        self,
+        prompt: str,
+        full_path: Optional[str] = None,
+        references: Optional[Dict[str, str]] = None,
+    ) -> ScanPromptResult:
+        result = self._client.execute(
+            Procedure.ScanPrompt,
+            ScanPromptParameters(
+                prompt=prompt,
+                full_path=full_path,
+                references=references,
+            ),
+        )
         if result.error:
             raise PromptlError(result.error.details) if result.error.details else RPCError(result.error)
         assert result.value is not None
@@ -49,6 +61,8 @@ class Prompts:
         parameters: Optional[Dict[str, Any]] = None,
         adapter: Optional[Adapter] = None,
         options: Optional[RenderPromptOptions] = None,
+        full_path: Optional[str] = None,
+        references: Optional[Dict[str, str]] = None,
     ) -> RenderPromptResult:
         options = RenderPromptOptions(**{**dict(self._options), **dict(options or {})})
         adapter = adapter or self._options.adapter
@@ -61,6 +75,8 @@ class Prompts:
                 adapter=adapter,
                 default_role=options.default_role,
                 include_source_map=options.include_source_map,
+                full_path=full_path,
+                references=references,
             ),
         )
         if result.error:
