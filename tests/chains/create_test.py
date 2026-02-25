@@ -31,7 +31,7 @@ class TestCreateChain(TestCase):
     def test_fails_procedure(self):
         with self.assertRaises(PromptlError) as context:
             self.promptl.chains.create(
-                prompt=fixtures.PROMPT[3:],
+                prompt=fixtures.PROMPT.replace('<step as="reasoning">', "<fail>"),
                 parameters=fixtures.PARAMETERS,
             )
 
@@ -40,10 +40,10 @@ class TestCreateChain(TestCase):
             PromptlError(
                 Error.model_construct(
                     name="ParseError",
-                    code="unexpected-token",
-                    message="Expected '---' but did not find it.",
-                    start=ErrorPosition(line=33, column=4, character=680),
-                    end=ErrorPosition(line=86, column=8, character=2172),
+                    code="unexpected-tag-close",
+                    message="Unexpected closing tag for step",
+                    start=ErrorPosition(line=65, column=69, character=1460),
+                    end=ErrorPosition(line=86, column=8, character=2160),
                     frame=mock.ANY,
                 )
             ),

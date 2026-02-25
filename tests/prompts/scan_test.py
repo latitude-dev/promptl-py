@@ -17,18 +17,17 @@ class TestScanPrompt(TestCase):
         self.assertEqual(result.included_prompt_paths, [""])
 
     def test_success_with_errors(self):
-        result = self.promptl.prompts.scan(fixtures.PROMPT[3:])
+        result = self.promptl.prompts.scan(fixtures.PROMPT.replace("model:", "ñ"))
 
-        self.assertEqual(result.config, {})
         self.assertEqual(
             result.errors,
             [
                 Error.model_construct(
-                    name="ParseError",
-                    code="unexpected-token",
-                    message="Expected '---' but did not find it.",
-                    start=ErrorPosition(line=33, column=4, character=680),
-                    end=ErrorPosition(line=86, column=8, character=2172),
+                    name="CompileError",
+                    code="invalid-config",
+                    message="Implicit map keys need to be followed by map values at line 3, column 1:\n\nprovider: OpenAI\nñ gpt-4o\n^^^^^^^^\n",  # noqa: E501
+                    start=ErrorPosition(line=3, column=1, character=21),
+                    end=ErrorPosition(line=3, column=9, character=29),
                     frame=mock.ANY,
                 )
             ],
