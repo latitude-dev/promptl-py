@@ -5,6 +5,8 @@ from promptl_ai.util import Field, Model
 
 class ScanPromptParameters(Model):
     prompt: str
+    full_path: Optional[str] = Field(default=None, alias=str("fullPath"))
+    references: Optional[Dict[str, str]] = None
 
 
 class RenderPromptParameters(Model):
@@ -13,6 +15,8 @@ class RenderPromptParameters(Model):
     adapter: Optional[str] = None
     default_role: Optional[str] = Field(default=None, alias=str("defaultRole"))
     include_source_map: Optional[bool] = Field(default=None, alias=str("includeSourceMap"))
+    full_path: Optional[str] = Field(default=None, alias=str("fullPath"))
+    references: Optional[Dict[str, str]] = None
 
 
 class CreateChainParameters(RenderPromptParameters, Model):

@@ -67,6 +67,8 @@ class Chains:
         parameters: Optional[Dict[str, Any]] = None,
         adapter: Optional[Adapter] = None,
         options: Optional[CreateChainOptions] = None,
+        full_path: Optional[str] = None,
+        references: Optional[Dict[str, str]] = None,
     ) -> Chain:
         options = CreateChainOptions(**{**dict(self._options), **dict(options or {})})
         adapter = adapter or self._options.adapter
@@ -79,6 +81,8 @@ class Chains:
                 adapter=adapter,
                 default_role=options.default_role,
                 include_source_map=options.include_source_map,
+                full_path=full_path,
+                references=references,
             ),
         )
         if result.error:
